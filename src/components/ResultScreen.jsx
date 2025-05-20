@@ -3,28 +3,45 @@ import { useEffect, useState } from "react";
 
 const plans = [
   {
-    id: "year",
-    label: "1-YEAR PLAN",
-    priceDay: 0.19,
-    priceMonth: 5.83,
-    priceYear: 7.5,
-    oldPrice: null,
+    id: "one-month",
+    label: "1-MONTH PLAN",
+    price: 25,
+    oldPrice: 75,
     popular: false,
   },
   {
-    id: "month",
-    label: "1-MONTH PLAN",
-    priceDay: 0.99,
-    oldPrice: 29.99,
-    oldPriceStriked: 37.48,
+    id: "two-month",
+    label: "2-MONTH PLAN",
+    price: 50,
+    oldPrice: 150,
     popular: true,
   },
   {
-    id: "quarter",
-    label: "3-MONTH PLAN",
-    priceDay: 0.44,
-    oldPrice: 39.99,
-    oldPriceStriked: 49.98,
+    id: "four-month",
+    label: "4-MONTH PLAN",
+    price: 100,
+    oldPrice: 250,
+    popular: false,
+  },
+  {
+    id: "eight-month",
+    label: "8-MONTH PLAN",
+    price: 300,
+    oldPrice: 700,
+    popular: false,
+  },
+  {
+    id: "twelve-month",
+    label: "12-MONTH PLAN",
+    price: 500,
+    oldPrice: 1000,
+    popular: false,
+  },
+  {
+    id: "twenty-four-month",
+    label: "24-MONTH PLAN",
+    price: 1000,
+    oldPrice: 2000,
     popular: false,
   },
 ];
@@ -206,144 +223,151 @@ export default function ResultScreen() {
         </div>
 
         {/* Plan selection */}
-        <div className="mb-12 rounded-xl border border-gray-200 max-w-xl mx-auto p-6 text-left shadow-sm">
-          <h2 className="text-3xl sm:text-4xl font-bold mb-10 leading-tight text-center">
-            Choose your plan
-          </h2>
-          <form>
-            {plans.map((plan) => (
-              <label
-                key={plan.id}
-                htmlFor={`plan-${plan.id}`}
-                className={`flex items-center justify-between border-2 rounded-2xl px-4 py-3 mb-4 cursor-pointer transition
-          ${
-            selectedPlan === plan.id
-              ? " bg-gradient-to-r from-blue-800 to-blue-500 text-white border-yellow-400"
-              : "bg-white text-black border-gray-300 hover:border-blue-500"
-          }
-        `}
-              >
-                {/* Custom radio circle */}
-                <div className="flex items-center space-x-4">
-                  <div
-                    className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition
-              ${
-                selectedPlan === plan.id
-                  ? "border-yellow-400"
-                  : "border-gray-400"
-              }
-            `}
-                  >
-                    {selectedPlan === plan.id && (
-                      <div className="w-3 h-3 bg-yellow-400 rounded-full" />
-                    )}
-                  </div>
+        <div className="min-h-screen max-w-3xl mx-auto px-4 py-12 text-center font-sans select-none mt-20">
+          <h1 className="text-3xl sm:text-4xl font-bold mb-4 leading-tight">
+            Choose Your Plan
+          </h1>
 
-                  {/* Plan text info */}
-                  <div>
+          <div className="mb-12 rounded-xl border border-gray-200 max-w-xl mx-auto p-6 text-left shadow-sm">
+            <h2 className="text-3xl sm:text-4xl font-bold mb-10 leading-tight text-center">
+              Choose your plan
+            </h2>
+            <form>
+              {plans.map((plan) => (
+                <label
+                  key={plan.id}
+                  htmlFor={`plan-${plan.id}`}
+                  className={`flex items-center justify-between border-2 rounded-2xl px-4 py-3 mb-4 cursor-pointer transition
+                ${
+                  selectedPlan === plan.id
+                    ? "bg-gradient-to-r from-blue-800 to-blue-500 text-white border-yellow-400"
+                    : "bg-white text-black border-gray-300 hover:border-blue-500"
+                }`}
+                >
+                  {/* Custom radio circle */}
+                  <div className="flex items-center space-x-4">
                     <div
-                      className={`flex flex-col items-center space-x-2 font-bold text-sm mb-1
-                ${selectedPlan === plan.id ? "text-white" : "text-black"}
-              `}
+                      className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition
+                  ${
+                    selectedPlan === plan.id
+                      ? "border-yellow-400"
+                      : "border-gray-400"
+                  }`}
                     >
-                      {plan.popular && (
-                        <span className="bg-yellow-400 text-black px-2 py-0.5 rounded-sm text-xs font-bold">
-                          MOST POPULAR
-                        </span>
+                      {selectedPlan === plan.id && (
+                        <div className="w-3 h-3 bg-yellow-400 rounded-full" />
                       )}
-                      <span className="text-lg">{plan.label}</span>
                     </div>
-                    {plan.priceYear && (
+
+                    {/* Plan text info */}
+                    <div>
+                      <div
+                        className={`flex flex-col items-center space-x-2 font-bold text-sm mb-1
+                      ${
+                        selectedPlan === plan.id ? "text-white" : "text-black"
+                      }`}
+                      >
+                        {plan.popular && (
+                          <span className="bg-yellow-400 text-black px-2 py-0.5 rounded-sm text-xs font-bold">
+                            MOST POPULAR
+                          </span>
+                        )}
+                        <span className="text-lg">{plan.label}</span>
+                      </div>
                       <div
                         className={`text-sm opacity-90
-                  ${selectedPlan === plan.id ? "text-white" : "text-gray-900"}
-                `}
+                      ${
+                        selectedPlan === plan.id
+                          ? "text-white"
+                          : "text-gray-900"
+                      }`}
                       >
-                        ${plan.priceYear}{" "}
-                        {plan.priceMonth ? `(${plan.priceMonth} monthly)` : ""}
+                        ${plan.price}
                       </div>
-                    )}
-                    {plan.oldPrice && (
                       <div
                         className={`text-xs line-through opacity-90
-                  ${
-                    selectedPlan === plan.id ? "text-white/80" : "text-gray-500"
-                  }
-                `}
+                      ${
+                        selectedPlan === plan.id
+                          ? "text-white/80"
+                          : "text-gray-500"
+                      }`}
                       >
-                        ${plan.oldPriceStriked ?? plan.oldPrice}
+                        ${plan.oldPrice}
                       </div>
-                    )}
+                    </div>
                   </div>
-                </div>
 
-                {/* Price */}
-                <div
-                  className={`flex flex-col text-left font-bold text-4xl min-w-[80px]
-            ${selectedPlan === plan.id ? "text-white" : "text-gray-600"}
-          `}
-                >
-                  <span>
-                    <span
-                      className={`text-lg align-text-top mr-1
-                ${selectedPlan === plan.id ? "text-white" : "text-gray-600"}
-              `}
-                    >
-                      $
-                    </span>
-                    {plan.priceDay.toFixed(2)}
-                  </span>
-
-                  <span
-                    className={`text-base font-semibold ml-1 text-right
-              ${selectedPlan === plan.id ? "text-white" : "text-gray-400"}
-            `}
+                  {/* Price */}
+                  <div
+                    className={`flex flex-col text-left font-bold text-4xl min-w-[80px]
+                ${selectedPlan === plan.id ? "text-white" : "text-gray-600"}`}
                   >
-                    per day
-                  </span>
-                </div>
+                    <span>
+                      <span
+                        className={`text-lg align-text-top mr-1
+                      ${
+                        selectedPlan === plan.id
+                          ? "text-white"
+                          : "text-gray-600"
+                      }`}
+                      >
+                        $
+                      </span>
+                      {plan.price}
+                    </span>
 
-                {/* Hidden radio input */}
-                <input
-                  type="radio"
-                  name="plan"
-                  id={`plan-${plan.id}`}
-                  value={plan.id}
-                  className="hidden"
-                  checked={selectedPlan === plan.id}
-                  onChange={() => setSelectedPlan(plan.id)}
-                />
-              </label>
-            ))}
+                    {/* <span
+                      className={`text-base font-semibold ml-1 text-right
+                    ${
+                      selectedPlan === plan.id ? "text-white" : "text-gray-400"
+                    }`}
+                    >
+                      per month
+                    </span> */}
+                  </div>
 
-            <button
-              type="button"
-              className="mt-4 w-full bg-gradient-to-r text-2xl from-blue-800 to-blue-500 text-yellow-400 font-bold py-3 rounded-full shadow-md hover:scale-105 transition"
-              onClick={() => alert(`You selected the ${selectedPlan} plan!`)}
-            >
-              Get my plan
-            </button>
+                  {/* Hidden radio input */}
+                  <input
+                    type="radio"
+                    name="plan"
+                    id={`plan-${plan.id}`}
+                    value={plan.id}
+                    className="hidden"
+                    checked={selectedPlan === plan.id}
+                    onChange={() => setSelectedPlan(plan.id)}
+                  />
+                </label>
+              ))}
 
-            {/* Terms and Conditions text */}
-            <p className="mt-4 w-full font-semibold text-sm text-gray-500 mx-auto text-center opacity-60">
-              By clicking the Get my plan, you agree to our{" "}
-              <span className="underline hover:cursor-pointer">
-                Terms and Conditions
-              </span>{" "}
-              and{" "}
-              <span className="underline hover:cursor-pointer">
-                Privacy Policy
-              </span>
-              , authorize automatic renewal of your subscription at the end of
-              each 1 month billing cycle at the full price of $29.99 plus
-              applicable taxes. You may cancel automatic renewal of your
-              subscription anytime before the renewal date. Check our{" "}
-              <span className="underline hover:cursor-pointer">
-                Cancellation Policy
-              </span>{" "}
-              for more details.
-            </p>
-          </form>
+              <button
+                type="button"
+                className="mt-4 w-full bg-gradient-to-r text-2xl from-blue-800 to-blue-500 text-yellow-400 font-bold py-3 rounded-full shadow-md hover:scale-105 transition"
+                onClick={() => alert(`You selected the ${selectedPlan} plan!`)}
+              >
+                Get my plan
+              </button>
+
+              {/* Terms and Conditions text */}
+              <p className="mt-4 w-full font-semibold text-sm text-gray-500 mx-auto text-center opacity-60">
+                By clicking the Get my plan, you agree to our{" "}
+                <span className="underline hover:cursor-pointer">
+                  Terms and Conditions
+                </span>{" "}
+                and{" "}
+                <span className="underline hover:cursor-pointer">
+                  Privacy Policy
+                </span>
+                , authorize automatic renewal of your subscription at the end of
+                each 1 month billing cycle at the full price of $29.99 plus
+                applicable taxes. You may cancel automatic renewal of your
+                subscription anytime before the renewal date. Check our{" "}
+                <span className="underline hover:cursor-pointer">
+                  Cancellation Policy
+                </span>{" "}
+                for more details.
+              </p>
+            </form>
+          </div>
         </div>
 
         {/* Support Section */}
