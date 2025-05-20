@@ -1,0 +1,499 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { ChevronLeft, ChevronRight, Check } from "lucide-react";
+import clsx from "clsx";
+import surveyScreens from "/data/survey";
+import ResultLoadingScreen from "../../components/ResultLoadingScreen";
+import ResultScreen from "@/components/ResultScreen";
+
+import GraphScreen from "../../components/GraphScreen";
+import ReviewScreen from "../../components/ReviewScreen";
+import MapScreen from "../../components/MapScreen";
+
+const quizFlow = surveyScreens;
+const questionSteps = quizFlow.filter((step) => step.type !== "static");
+
+export default function SurveyPage() {
+  // Main quiz states
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [answers, setAnswers] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
+  const [selectedUnit, setSelectedUnit] = useState("FT");
+  const [feet, setFeet] = useState("");
+  const [inch, setInch] = useState("");
+  const [cm, setCm] = useState("");
+  const [selectedDate, setSelectedDate] = useState("");
+
+  // intermission flow states
+  const [inIntermission, setInIntermission] = useState(false);
+  const [intermissionIndex, setIntermissionIndex] = useState(0);
+
+  // 3 intermission screens
+  const intermissionScreens = [
+    <GraphScreen
+      key="graph"
+      onNext={() => setIntermissionIndex((i) => i + 1)}
+    />,
+    <ReviewScreen
+      key="review"
+      onNext={() => setIntermissionIndex((i) => i + 1)}
+    />,
+    <MapScreen
+      key="map"
+      onNext={() => {
+        setInIntermission(false);
+        setIsLoading(true);
+      }}
+    />,
+  ];
+
+  // Start intermission after last quiz question
+  useEffect(() => {
+    if (currentIndex === quizFlow.length && !inIntermission) {
+      setInIntermission(true);
+      setIntermissionIndex(0);
+    }
+  }, [currentIndex, inIntermission]);
+
+  // Loading screen timer after intermission ends
+  useEffect(() => {
+    let timer;
+    if (isLoading) {
+      timer = setTimeout(() => {
+        setIsLoading(false);
+        setCurrentIndex((prev) => prev + 1); // show results next
+      }, 5000);
+    }
+    return () => clearTimeout(timer);
+  }, [isLoading]);
+
+  // Render loading screen
+  if (isLoading) {
+    return <ResultLoadingScreen />;
+  }
+
+  // Render result screen after loading
+  if (currentIndex > quizFlow.length) {
+    return <ResultScreen answers={answers} />;
+  }
+
+  // Render intermission screens if in intermission
+  if (inIntermission) {
+    return intermissionScreens[intermissionIndex] || null;
+  }
+
+  // Avoid out-of-range question access
+  if (currentIndex >= quizFlow.length) {
+    return null;
+  }
+
+  // Current quiz step
+  const currentStep = quizFlow[currentIndex];
+
+  // Is current question answered
+  const isAnswered =
+    currentStep.type === "date"
+      ? answers[currentStep.id] !== undefined && answers[currentStep.id] !== ""
+      : answers[currentStep.id] !== undefined && answers[currentStep.id] !== "";
+
+  // Answer handling
+  const handleAnswer = (answer) => {
+    setAnswers((prev) => ({ ...prev, [currentStep.id]: answer }));
+    if (currentIndex < quizFlow.length) {
+      setCurrentIndex((prev) => prev + 1);
+    }
+  };
+
+  // Back button
+  const handleBack = () => {
+    if (currentIndex > 0) {
+      setCurrentIndex((prev) => prev - 1);
+    }
+  };
+
+  // Date question continue/skip handler
+  const handleContinue = (skipped = false) => {
+    const answer = skipped ? "skipped" : selectedDate;
+
+    if (!skipped && !selectedDate) {
+      alert("Please select a date or skip the question.");
+      return;
+    }
+
+    setAnswers((prev) => ({ ...prev, [currentStep.id]: answer }));
+
+    if (currentIndex < quizFlow.length) {
+      setCurrentIndex((prev) => prev + 1);
+      setSelectedDate("");
+    }
+  };
+
+  // Unit input next step handler
+  const handleNextStep = () => {
+    let answerValue = "";
+
+    if (selectedUnit === "FT") {
+      if (!feet || !inch) {
+        alert("Please enter both feet and inches");
+        return;
+      }
+      answerValue = `${feet}ft ${inch}in`;
+    } else {
+      if (!cm) {
+        alert("Please enter centimeters");
+        return;
+      }
+      answerValue = `${cm}cm`;
+    }
+
+    setAnswers((prev) => ({ ...prev, [currentStep.id]: answerValue }));
+
+    if (currentIndex < quizFlow.length) {
+      setCurrentIndex((prev) => prev + 1);
+      setFeet("");
+      setInch("");
+      setCm("");
+    }
+  };
+
+  // Module completion check for progress bar
+  const isModuleCompleted = (moduleNumber) => {
+    const moduleSteps = questionSteps.filter((q) => q.module === moduleNumber);
+    const answeredSteps = moduleSteps.filter((q) => answers[q.id]);
+    return answeredSteps.length === moduleSteps.length;
+  };
+
+  // Progress bar fill percent
+  const getLineFillPercent = (moduleIndex) => {
+    const moduleQuestions = questionSteps.filter(
+      (q) => q.module === moduleIndex
+    );
+    const answeredCount = moduleQuestions.filter((q) => answers[q.id]).length;
+    return (answeredCount / moduleQuestions.length) * 100;
+  };
+
+  // Arrow next button handler
+  const handleArrowNext = () => {
+    if (isAnswered && currentIndex < quizFlow.length - 1) {
+      setCurrentIndex((prev) => prev + 1);
+    }
+  };
+
+  return (
+    <>
+      <div className="fixed top-4 left-16 z-50 mb-16 text-3xl font-semibold hidden md:block">
+        slimkit
+      </div>
+
+      <div className="min-h-screen bg-white px-4 py-8 flex flex-col items-center mt-20">
+        {/* Progress bar */}
+        <div className="flex items-center justify-center space-x-2 mb-8 w-full max-w-2xl">
+          <ChevronLeft
+            className={clsx(
+              "cursor-pointer",
+              currentIndex === 0
+                ? "text-gray-300 pointer-events-none"
+                : "text-blue-800"
+            )}
+            onClick={handleBack}
+            size={28}
+            strokeWidth={2.5}
+          />
+
+          <div className="flex items-center flex-1">
+            {[1, 2, 3, 4, 5].map((circleIndex, idx) => {
+              const isFilled =
+                circleIndex === 1 ||
+                (circleIndex > 1 && isModuleCompleted(circleIndex - 1));
+              const lineFill = idx < 4 ? getLineFillPercent(idx + 1) : 0;
+              return (
+                <div
+                  key={circleIndex}
+                  className={`flex items-center ${
+                    idx < 4 ? "flex-1" : "flex-none"
+                  }`}
+                >
+                  <div
+                    className={clsx(
+                      "w-6 h-6 rounded-full flex items-center justify-center z-10 transition-colors duration-300",
+                      isFilled
+                        ? "bg-blue-800 text-white"
+                        : "bg-gray-200 text-gray-400"
+                    )}
+                  >
+                    {isFilled ? <Check color="#EFBF04" size={16} /> : ""}
+                  </div>
+                  {idx < 4 && (
+                    <div className="flex-1 h-1 bg-gray-200 relative rounded-full overflow-hidden -ml-1 -mr-1">
+                      <div
+                        className="h-full bg-blue-500 transition-all duration-500"
+                        style={{ width: `${lineFill}%` }}
+                      />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          <ChevronRight
+            className={clsx(
+              "cursor-pointer",
+              !isAnswered
+                ? "text-gray-300 pointer-events-none"
+                : "text-blue-800"
+            )}
+            onClick={handleArrowNext}
+            size={28}
+            strokeWidth={2.5}
+          />
+        </div>
+
+        {/* Question Content */}
+        <div className="text-center max-w-xl w-full">
+          <h1 className="text-4xl font-bold mb-10 mt-3">
+            {currentStep.question}
+          </h1>
+          {currentStep.description && (
+            <p className="text-gray-500 mb-4 text-lg">
+              {currentStep.description}
+            </p>
+          )}
+
+          {/* Question Types */}
+          {(() => {
+            switch (currentStep.type) {
+              case "choice":
+                return (
+                  <div className="space-y-4 w-full max-w-md mx-auto">
+                    {currentStep.options.map((opt, idx) => (
+                      <div
+                        key={idx}
+                        onClick={() => handleAnswer(opt.label)}
+                        className={clsx(
+                          "flex items-center space-x-4 p-4 rounded-2xl cursor-pointer transition-all w-auto",
+                          answers[currentStep.id] === opt.label
+                            ? "bg-gradient-to-r from-blue-800 to-blue-500 text-white"
+                            : "bg-gray-50 text-black hover:border-blue-500"
+                        )}
+                      >
+                        <img
+                          src={opt.image}
+                          alt={opt.label}
+                          className="w-11 h-11 rounded-full bg-sky-100 p-1.5"
+                        />
+                        <div className="text-left">
+                          <span className="text-lg font-bold">{opt.label}</span>
+                          {opt.description && (
+                            <p className="text-sm text-gray-500">
+                              {opt.description}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                );
+              case "gender":
+                return (
+                  <div className="flex justify-center gap-6 w-full max-w-2xl mx-auto">
+                    {currentStep.options.map((opt, idx) => (
+                      <div
+                        key={idx}
+                        onClick={() => handleAnswer(opt.label)}
+                        className={clsx(
+                          "flex flex-col items-center p-4 rounded-2xl cursor-pointer transition-all w-40",
+                          answers[currentStep.id] === opt.label
+                            ? "bg-gradient-to-b from-blue-600 to-blue-400 text-white border-blue-600"
+                            : "bg-gray-50 text-black hover:border-blue-400"
+                        )}
+                      >
+                        <img
+                          src={opt.image}
+                          alt={opt.label}
+                          className="h-60 w-auto object-contain mb-4"
+                        />
+                        <span className="text-lg font-bold">{opt.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                );
+              case "choice-alter":
+                return (
+                  <div className="space-y-6 w-full max-w-2xl mx-auto">
+                    {currentStep.options.map((opt, idx) => (
+                      <div
+                        key={idx}
+                        onClick={() => handleAnswer(opt.label)}
+                        className={clsx(
+                          "flex items-center justify-between w-full p-4 rounded-2xl cursor-pointer transition-all",
+                          answers[currentStep.id] === opt.label
+                            ? "bg-gradient-to-r from-blue-800 to-blue-500 text-white"
+                            : "bg-gray-50 text-black hover:border-blue-500"
+                        )}
+                      >
+                        <span className="text-lg font-bold">{opt.label}</span>
+                        <div className="h-24 w-auto">
+                          <img
+                            src={opt.image}
+                            alt={opt.label}
+                            className="h-full object-contain"
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                );
+              case "scale":
+                const match = currentStep.speech.match(/“(.+?)”/);
+                const speechMain = match ? match[1] : currentStep.speech;
+                const [highlight, ...rest] = speechMain.split(",");
+                return (
+                  <div className="w-full max-w-xl mx-auto text-center space-y-8">
+                    <div className="relative inline-block max-w-full text-left">
+                      <div className="bg-gradient-to-b from-white to-blue-100 text-lg leading-relaxed text-black p-6 rounded-3xl shadow-md">
+                        <p>
+                          <span className="text-blue-600 font-bold">
+                            {highlight}
+                          </span>
+                          {rest.length > 0 && ","}
+                          <br />
+                          {rest.join(",").trim()}
+                        </p>
+                      </div>
+                      <div className="absolute bottom-0 right-6 translate-y-full w-0 h-0 border-t-[20px] border-t-blue-50 border-l-[20px] border-l-transparent"></div>
+                    </div>
+                    <div className="flex justify-center gap-4 pt-4">
+                      {currentStep.scale.map((value) => (
+                        <button
+                          key={value}
+                          onClick={() => handleAnswer(value)}
+                          className={clsx(
+                            "w-16 h-16 rounded-2xl text-xl font-bold flex items-center justify-center transition",
+                            answers[currentStep.id] === value
+                              ? "bg-gradient-to-r from-blue-800 to-blue-500 text-yellow-300"
+                              : "bg-blue-50 text-black hover:bg-gray-200"
+                          )}
+                        >
+                          {value}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                );
+              case "unit-input":
+                const isHeight = currentStep.question
+                  .toLowerCase()
+                  .includes("height");
+                return (
+                  <div className="space-y-6 w-full max-w-md mx-auto text-center">
+                    <div className="flex justify-center gap-2 bg-gray-100 p-1 rounded-full w-full max-w-xs mx-auto">
+                      {currentStep.units.map((unit) => (
+                        <button
+                          key={unit}
+                          onClick={() => setSelectedUnit(unit)}
+                          className={`w-1/2 py-2 rounded-full font-semibold ${
+                            selectedUnit === unit
+                              ? "bg-gradient-to-r from-blue-700 to-blue-500 text-white"
+                              : "text-gray-800"
+                          }`}
+                        >
+                          {unit}
+                        </button>
+                      ))}
+                    </div>
+                    {isHeight && selectedUnit === "FT" ? (
+                      <div className="flex justify-center items-end gap-4 text-2xl font-bold">
+                        <input
+                          type="number"
+                          placeholder="ft"
+                          value={feet}
+                          onChange={(e) => setFeet(e.target.value)}
+                          className="w-20 text-center border-b-2 border-black focus:outline-none"
+                        />
+                        <span className="text-lg">ft</span>
+                        <input
+                          type="number"
+                          placeholder="in"
+                          value={inch}
+                          onChange={(e) => setInch(e.target.value)}
+                          className="w-20 text-center border-b-2 border-black focus:outline-none"
+                        />
+                        <span className="text-lg">in</span>
+                      </div>
+                    ) : (
+                      <div className="flex justify-center items-end gap-2 text-2xl font-bold">
+                        <input
+                          type="number"
+                          placeholder={selectedUnit}
+                          value={cm}
+                          onChange={(e) => setCm(e.target.value)}
+                          className="w-28 text-center border-b-2 border-black focus:outline-none"
+                        />
+                        <span className="text-lg">{selectedUnit}</span>
+                      </div>
+                    )}
+                    <div className="bg-gray-100 p-4 rounded-2xl flex gap-2 items-start">
+                      <span className="text-blue-600 text-xl">🧮</span>
+                      <div className="text-left">
+                        <p className="font-semibold">Calculating your BMI</p>
+                        <p className="text-sm text-gray-600">
+                          Body mass index (BMI) is a metric of body fat
+                          percentage commonly used to estimate risk levels of
+                          potential health problems.
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={handleNextStep}
+                      className="bg-gradient-to-r from-blue-800 to-blue-500 text-yellow-300 font-semibold py-2 px-6 rounded-full shadow-md hover:scale-105 transition w-full max-w-xs text-2xl"
+                    >
+                      Done
+                    </button>
+                  </div>
+                );
+              case "date":
+                return (
+                  <div className="w-full max-w-md mx-auto text-center px-4 space-y-10">
+                    <div className="border-b-2 border-gray-300">
+                      <input
+                        type="date"
+                        value={answers[currentStep.id] || selectedDate}
+                        onChange={(e) => {
+                          setAnswers((prev) => ({
+                            ...prev,
+                            [currentStep.id]: e.target.value,
+                          }));
+                          setSelectedDate(e.target.value);
+                        }}
+                        className="w-full text-center text-2xl font-semibold text-black bg-transparent py-2 outline-none"
+                      />
+                    </div>
+                    <div className="flex flex-col items-center space-y-4">
+                      {currentStep.optional && (
+                        <button
+                          onClick={() => handleContinue(true)}
+                          className="text-blue-600 hover:underline text-base"
+                        >
+                          Skip this question
+                        </button>
+                      )}
+                      <button
+                        onClick={() => handleContinue(false)}
+                        className="bg-gradient-to-r from-blue-800 to-blue-500 text-yellow-300 font-semibold py-4 px-6 rounded-full shadow-md hover:scale-105 transition w-full max-w-xs text-2xl"
+                      >
+                        Done
+                      </button>
+                    </div>
+                  </div>
+                );
+              default:
+                return null;
+            }
+          })()}
+        </div>
+      </div>
+    </>
+  );
+}
