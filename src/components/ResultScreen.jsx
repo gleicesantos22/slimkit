@@ -8,6 +8,8 @@ const plans = [
     price: 25,
     oldPrice: 75,
     popular: false,
+    checkoutUrl:
+      "https://ultimate-metthod.mycartpanda.com/checkout/184684479:1",
   },
   {
     id: "two-month",
@@ -15,6 +17,8 @@ const plans = [
     price: 50,
     oldPrice: 150,
     popular: true,
+    checkoutUrl:
+      "https://ultimate-metthod.mycartpanda.com/checkout/184684483:1",
   },
   {
     id: "four-month",
@@ -22,6 +26,8 @@ const plans = [
     price: 100,
     oldPrice: 250,
     popular: false,
+    checkoutUrl:
+      "https://ultimate-metthod.mycartpanda.com/checkout/184684485:1",
   },
   {
     id: "eight-month",
@@ -29,6 +35,8 @@ const plans = [
     price: 300,
     oldPrice: 700,
     popular: false,
+    checkoutUrl:
+      "https://ultimate-metthod.mycartpanda.com/checkout/184684523:1",
   },
   {
     id: "twelve-month",
@@ -36,6 +44,8 @@ const plans = [
     price: 500,
     oldPrice: 1000,
     popular: false,
+    checkoutUrl:
+      "https://ultimate-metthod.mycartpanda.com/checkout/184684678:1",
   },
   {
     id: "twenty-four-month",
@@ -43,6 +53,8 @@ const plans = [
     price: 1000,
     oldPrice: 2000,
     popular: false,
+    checkoutUrl:
+      "https://ultimate-metthod.mycartpanda.com/checkout/184684680:1",
   },
 ];
 
@@ -238,21 +250,21 @@ export default function ResultScreen() {
                   key={plan.id}
                   htmlFor={`plan-${plan.id}`}
                   className={`flex items-center justify-between border-2 rounded-2xl px-4 py-3 mb-4 cursor-pointer transition
-                ${
-                  selectedPlan === plan.id
-                    ? "bg-gradient-to-r from-blue-800 to-blue-500 text-white border-yellow-400"
-                    : "bg-white text-black border-gray-300 hover:border-blue-500"
-                }`}
+            ${
+              selectedPlan === plan.id
+                ? "bg-gradient-to-r from-blue-800 to-blue-500 text-white border-yellow-400"
+                : "bg-white text-black border-gray-300 hover:border-blue-500"
+            }`}
                 >
                   {/* Custom radio circle */}
                   <div className="flex items-center space-x-4">
                     <div
                       className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition
-                  ${
-                    selectedPlan === plan.id
-                      ? "border-yellow-400"
-                      : "border-gray-400"
-                  }`}
+                ${
+                  selectedPlan === plan.id
+                    ? "border-yellow-400"
+                    : "border-gray-400"
+                }`}
                     >
                       {selectedPlan === plan.id && (
                         <div className="w-3 h-3 bg-yellow-400 rounded-full" />
@@ -263,9 +275,7 @@ export default function ResultScreen() {
                     <div>
                       <div
                         className={`flex flex-col items-center space-x-2 font-bold text-sm mb-1
-                      ${
-                        selectedPlan === plan.id ? "text-white" : "text-black"
-                      }`}
+                  ${selectedPlan === plan.id ? "text-white" : "text-black"}`}
                       >
                         {plan.popular && (
                           <span className="bg-yellow-400 text-black px-2 py-0.5 rounded-sm text-xs font-bold">
@@ -276,21 +286,15 @@ export default function ResultScreen() {
                       </div>
                       <div
                         className={`text-sm opacity-90
-                      ${
-                        selectedPlan === plan.id
-                          ? "text-white"
-                          : "text-gray-900"
-                      }`}
+                  ${selectedPlan === plan.id ? "text-white" : "text-gray-900"}`}
                       >
                         ${plan.price}
                       </div>
                       <div
                         className={`text-xs line-through opacity-90
-                      ${
-                        selectedPlan === plan.id
-                          ? "text-white/80"
-                          : "text-gray-500"
-                      }`}
+                  ${
+                    selectedPlan === plan.id ? "text-white/80" : "text-gray-500"
+                  }`}
                       >
                         ${plan.oldPrice}
                       </div>
@@ -300,30 +304,17 @@ export default function ResultScreen() {
                   {/* Price */}
                   <div
                     className={`flex flex-col text-left font-bold text-4xl min-w-[80px]
-                ${selectedPlan === plan.id ? "text-white" : "text-gray-600"}`}
+              ${selectedPlan === plan.id ? "text-white" : "text-gray-600"}`}
                   >
                     <span>
                       <span
                         className={`text-lg align-text-top mr-1
-                      ${
-                        selectedPlan === plan.id
-                          ? "text-white"
-                          : "text-gray-600"
-                      }`}
+                  ${selectedPlan === plan.id ? "text-white" : "text-gray-600"}`}
                       >
                         $
                       </span>
                       {plan.price}
                     </span>
-
-                    {/* <span
-                      className={`text-base font-semibold ml-1 text-right
-                    ${
-                      selectedPlan === plan.id ? "text-white" : "text-gray-400"
-                    }`}
-                    >
-                      per month
-                    </span> */}
                   </div>
 
                   {/* Hidden radio input */}
@@ -342,7 +333,16 @@ export default function ResultScreen() {
               <button
                 type="button"
                 className="mt-4 w-full bg-gradient-to-r text-2xl from-blue-800 to-blue-500 text-yellow-400 font-bold py-3 rounded-full shadow-md hover:scale-105 transition"
-                onClick={() => alert(`You selected the ${selectedPlan} plan!`)}
+                onClick={() => {
+                  const selected = plans.find(
+                    (plan) => plan.id === selectedPlan
+                  );
+                  if (selected?.checkoutUrl) {
+                    window.location.href = selected.checkoutUrl;
+                  } else {
+                    alert("No checkout available for the selected plan.");
+                  }
+                }}
               >
                 Get my plan
               </button>
